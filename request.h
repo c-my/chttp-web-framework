@@ -10,12 +10,18 @@
 
 #include <string>
 
+#ifdef __linux__
+#elif _MSC_VER
+#include <WinSock2.h>
+#endif // __linux__
+
+
 #include "headers.h"
 
 namespace chttp {
 
 enum class Request_Method {
-	GET, POST, HEAD, PUT, DELETE, OPTIONS, CONNECT, TRACE, ALL, NONE
+	GET, POST, HEAD, PUT, DELETE_M, OPTIONS, CONNECT, TRACE, ALL, NONE
 };
 
 enum class Http_Version {
@@ -26,6 +32,12 @@ using URL_type=std::string;
 
 class Request final {
 public:
+#ifdef __linux__
+	using IP_type = __uint32_t;
+#elif _MSC_VER
+	using IP_type = ULONG;
+#endif // __linux__
+
 	using URL_type=std::string;
 
 	Request() = delete;

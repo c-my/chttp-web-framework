@@ -16,6 +16,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef _MSC_VER
+#include <WinSock2.h>
+#endif
+
 #include "headers.h"
 
 namespace chttp {
@@ -37,8 +41,18 @@ struct HttpVersionStr {
 
 class Response final {
 public:
+#ifdef __linux__
+	using Port_type = in_port_t;
+	using Sock_type = int;
+#endif
+
+#ifdef _MSC_VER
+	using Port_type = USHORT;
+	using Sock_type = UINT_PTR;
+#endif
+
 	Response() = delete;
-	Response(int clnt_sock) :
+	Response(Sock_type clnt_sock) :
 			clnt_sock(clnt_sock) {
 	}
 	~Response();
@@ -57,11 +71,15 @@ public:
 
 private:
 	friend class Server;
-
+#ifdef __linux__
 	int clnt_sock;
-	int buffer_size { 1024 };
+#elif _MSC_VER
+	SOCKET clnt_sock;
+#endif // __linux__
+
+
+	static constexpr int buffer_size { 1024 };
 	Headers header { };
-	__uint32_t clnt_ip;
 
 	static std::string NotFoundPage;
 
@@ -69,8 +87,9 @@ private:
 	void SendHeader(const Headers& headers);
 	void SendFile(int clnt_sock, const char* file_path);
 
-	void WriteSocket(int clnt_sock, const char* buffer, size_t size = 0,
+	void WriteSocket(Port_type clnt_sock, const char* buffer, size_t size = 0,
 			int flags = 0);
+	inline void CloseSocket(Sock_type sock);
 };
 
 } /* namespace chttp */

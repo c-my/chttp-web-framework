@@ -52,14 +52,14 @@ void Response::ServeHtml(const char* file_path) {
 	SendHeader(header);
 
 	SendFile(clnt_sock, file_path);
-	close(clnt_sock);
+	CloseSocket(clnt_sock);
 }
 
 void Response::SendFile(int clnt_sock, const char* file_path) {
-#ifdef __linux__
+//#ifdef __linux__
 	auto file = fopen(file_path, "r");
 	if (file == NULL) {
-		throw "file_not_found";
+		return NotFound();
 	} else {
 		char buffer[buffer_size];
 		fgets(buffer, sizeof(buffer), file);
@@ -69,7 +69,7 @@ void Response::SendFile(int clnt_sock, const char* file_path) {
 		}
 	}
 	fclose(file);
-#endif
+//#endif
 }
 void Response::SendHeader(const Headers& headers) {
 	const auto content = headers.Content();
@@ -97,9 +97,8 @@ void Response::NotFound() {
 	SendFile(clnt_sock, NotFoundPage.c_str());
 }
 
-void Response::WriteSocket(int sock, const char* buffer, size_t size,
+void Response::WriteSocket(Port_type sock, const char* buffer, size_t size,
 		int flags) {
-#ifdef __linux__
 	size_t length = size;
 	if (size == 0)
 		length = strlen(buffer);
@@ -107,6 +106,15 @@ void Response::WriteSocket(int sock, const char* buffer, size_t size,
 	std::cout << "write to socket:";
 	for (size_t i = 0; i < length; ++i)
 		cout << buffer[i];
+}
+
+inline void Response::CloseSocket(Sock_type sock)
+{
+#ifdef __linux__
+	return close(sock);
+#elif _MSC_VER
+	closesocket(sock);
+	return;
 #endif
 }
 

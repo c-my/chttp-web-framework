@@ -6,7 +6,11 @@
  */
 
 #include "server.h"
-using namespace std;
+using std::string;
+using std::vector;
+using std::cout;
+using std::endl;
+using std::runtime_error;
 
 namespace chttp {
 
@@ -19,8 +23,8 @@ Server::~Server() {
 	// TODO Auto-generated destructor stub
 }
 
-int Server::GetLine(int sock, char* buf, int size) {
-#ifdef __linux__
+int Server::GetLine(Sock_type sock, char* buf, int size) {
+//#ifdef __linux__
 	int count { };
 	char c = '\0';
 	int n { };
@@ -44,10 +48,10 @@ int Server::GetLine(int sock, char* buf, int size) {
 	buf[count] = '\0';
 	return count;
 
-#endif
+//#endif
 }
 
-vector<string> Server::ReadRequest(const int & clnt_sock) {
+vector<string> Server::ReadRequest(const Sock_type& clnt_sock) {
 	int char_count { 1 };
 	char buffer[buffer_size];
 	vector<string> content { };
@@ -58,7 +62,8 @@ vector<string> Server::ReadRequest(const int & clnt_sock) {
 	return content;
 }
 
-int Server::StartUpSocket(const in_port_t& port) {
+Server::Sock_type Server::StartUpSocket(const Port_type& port) {
+#ifdef __linux__
 	int serv_sock { };
 	sockaddr_in serv_addr { };
 
@@ -71,17 +76,45 @@ int Server::StartUpSocket(const in_port_t& port) {
 	serv_addr.sin_port = htons(port);
 	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	if (bind(serv_sock, (sockaddr*) (&serv_addr), sizeof(serv_addr)) < 0) {
-		throw std::runtime_error { "bind_error" };
+		throw std::runtime_error { "socket_bind_error" };
 	}
 
 	if (listen(serv_sock, 5) == -1) {
-		throw std::runtime_error { "listen error" };
-
+		throw std::runtime_error { "socket_listen_error" };
 	}
 	return serv_sock;
+#endif __linux__ //__linux__
+
+#ifdef _MSC_VER
+	WSADATA wsaData{};
+	SOCKET serv_sock{};
+	SOCKADDR_IN serv_addr;
+	
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+		throw std::runtime_error{ "win_socket_startup_error" };
+	}
+	
+	serv_sock = socket(PF_INET, SOCK_STREAM, 0);
+	if (serv_sock == INVALID_SOCKET) {
+		throw std::runtime_error{ "socket_create_error" };
+	}
+	
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	serv_addr.sin_port = htons(port);
+	if (bind(serv_sock, (SOCKADDR*)& serv_addr, sizeof(serv_addr)) == SOCKET_ERROR) {
+		throw std::runtime_error{ "socket_bind_error" };
+	}
+
+	if (listen(serv_sock, 5) == SOCKET_ERROR) {
+		throw std::runtime_error{ "socket_listen_error" };
+	}
+
+	return serv_sock;
+#endif // _MSC_VER
 }
 
-void Server::ProcessRequest(int clnt_sock) {
+void Server::ProcessRequest(Sock_type clnt_sock) {
 	auto request_string = ReadRequest(clnt_sock);
 	auto request_line = ParseRequestLine(request_string);
 	Request_Method method = std::get<0>(request_line);
@@ -95,12 +128,10 @@ void Server::ProcessRequest(int clnt_sock) {
 	}
 	cout << "url: " << url << endl;
 	cout << "Headers:\n" << header << endl;
-	// TODO construct an request object
 	// TODO add client info to request
 	Request request { method, url, version, header };
-	// TODO construct an response object
 	Response response { clnt_sock };
-	// TODO call the handler function
+	
 	RequestInfo request_info { url, method };
 	if (http_router.Contains(request_info)) {
 		auto handler = http_router.GetHandler(request_info);
@@ -143,42 +174,38 @@ std::tuple<Request_Method, URL_type, Http_Version> Server::ParseRequestLine(
 
 Request_Method Server::GetRequestMethod(const std::string& str) {
 	auto c_str = str.c_str();
-#ifdef __linux__
-	if (strcasecmp(c_str, "get") == 0) {
+	if (StrCompare(c_str, "get") == 0) {
 		return Request_Method::GET;
-	} else if (strcasecmp(c_str, "post") == 0) {
+	} else if (StrCompare(c_str, "post") == 0) {
 		return Request_Method::POST;
-	} else if (strcasecmp(c_str, "head") == 0) {
+	} else if (StrCompare(c_str, "head") == 0) {
 		return Request_Method::HEAD;
-	} else if (strcasecmp(c_str, "put") == 0) {
+	} else if (StrCompare(c_str, "put") == 0) {
 		return Request_Method::PUT;
-	} else if (strcasecmp(c_str, "delete") == 0) {
-		return Request_Method::DELETE;
-	} else if (strcasecmp(c_str, "options") == 0) {
+	} else if (StrCompare(c_str, "delete") == 0) {
+		return Request_Method::DELETE_M;
+	} else if (StrCompare(c_str, "options") == 0) {
 		return Request_Method::OPTIONS;
-	} else if (strcasecmp(c_str, "connect") == 0) {
+	} else if (StrCompare(c_str, "connect") == 0) {
 		return Request_Method::CONNECT;
-	} else if (strcasecmp(c_str, "trace") == 0) {
+	} else if (StrCompare(c_str, "trace") == 0) {
 		return Request_Method::TRACE;
 	} else {
 		return Request_Method::NONE;
 	}
-#endif
 }
 
 Http_Version Server::GetHttpVersion(const std::string& str) {
 	auto c_str = str.c_str();
-#ifdef __linux__
-	if (strcasecmp(c_str, "HTTP/1.1")) {
+	if (StrCompare(c_str, "HTTP/1.1")) {
 		return Http_Version::HTTP1_1;
-	} else if (strcasecmp(c_str, "HTTP/1.0")) {
+	} else if (StrCompare(c_str, "HTTP/1.0")) {
 		return Http_Version::HTTP1_0;
-	} else if (strcasecmp(c_str, "HTTP/2.0")) {
+	} else if (StrCompare(c_str, "HTTP/2.0")) {
 		return Http_Version::HTTP2_0;
 	} else {
 		return Http_Version::NONE;
 	}
-#endif
 }
 
 URL_type Server::GetRequestUrl(const std::string& str) {
@@ -194,6 +221,26 @@ std::pair<std::string, std::string> Server::GetKeyValuePair(
 	string key { str.cbegin(), str.begin() + it };
 	string value { str.begin() + it + 2, str.end() };
 	return make_pair(key, value);
+}
+
+inline int Server::StrCompare(const char* str1, const char* str2)
+{
+#ifdef __linux__
+	return strcasecmp(str1, str2);
+#endif
+#ifdef _MSC_VER
+	return _stricmp(str1, str2);
+#endif
+}
+
+void Server::CloseSocket(Sock_type sock)
+{
+#ifdef __linux__
+	return close(sock);
+#elif _MSC_VER
+	closesocket(sock);
+	return;
+#endif
 }
 
 } /* namespace chttp */

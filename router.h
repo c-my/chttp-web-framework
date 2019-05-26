@@ -70,7 +70,7 @@ public:
 	}
 
 	inline bool Delete(const Request::URL_type& url, Handler handler) {
-		return AddHandler(url, Request_Method::DELETE, handler);
+		return AddHandler(url, Request_Method::DELETE_M, handler);
 	}
 
 	inline bool Connect(const Request::URL_type& url, Handler handler) {
