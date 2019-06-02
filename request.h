@@ -17,6 +17,7 @@
 
 
 #include "headers.h"
+#include "url.h"
 
 namespace chttp {
 
@@ -28,7 +29,7 @@ enum class Http_Version {
 	HTTP1_0, HTTP1_1, HTTP2_0, NONE
 };
 
-using URL_type=std::string;
+using URL_type=URL;
 
 class Request final {
 public:
@@ -38,7 +39,7 @@ public:
 	using IP_type = ULONG;
 #endif // __linux__
 
-	using URL_type=std::string;
+	using URL_type=URL;
 
 	Request() = delete;
 	Request(Request_Method method, URL_type url, Http_Version version,

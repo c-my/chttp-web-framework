@@ -118,7 +118,7 @@ void Server::ProcessRequest(Sock_type clnt_sock) {
 	auto request_string = ReadRequest(clnt_sock);
 	auto request_line = ParseRequestLine(request_string);
 	Request_Method method = std::get<0>(request_line);
-	URL_type url = std::get<1>(request_line);
+	URL_type url = URL{ std::get<1>(request_line) };
 	Http_Version version = std::get<2>(request_line);
 	Headers header { };
 	for (auto it = request_string.begin() + 1; it + 1 != request_string.end(); // ignore the last empty line
@@ -169,7 +169,7 @@ std::tuple<Request_Method, URL_type, Http_Version> Server::ParseRequestLine(
 	auto url = GetRequestUrl(url_string);
 	auto http_version = GetHttpVersion(version_string.c_str());
 
-	return make_tuple(method, url, http_version);
+	return std::make_tuple(method, url, http_version);
 }
 
 Request_Method Server::GetRequestMethod(const std::string& str) {

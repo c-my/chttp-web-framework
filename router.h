@@ -30,7 +30,7 @@ struct RequestInfo { //TODO:Hash func
 struct RequestInfoHasher {
 	std::size_t operator()(const RequestInfo & info) const {
 		using std::hash;
-		return (hash<Request::URL_type>()(info.url)
+		return (hash<std::string>()(info.url.GetURL())
 				^ hash<int>()(static_cast<int>(info.method)));
 	}
 };
