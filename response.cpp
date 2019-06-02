@@ -55,11 +55,14 @@ void Response::ServeHtml(const char* file_path) {
 	CloseSocket(clnt_sock);
 }
 
-void Response::SendFile(int clnt_sock, const char* file_path) {
+void Response::SendFile(Sock_type clnt_sock, const char* file_path, bool show_not_found) {
 //#ifdef __linux__
-	auto file = fopen(file_path, "r");
+	FILE* file = fopen(file_path, "r");
 	if (file == NULL) {
-		return NotFound();
+		if (show_not_found)
+			return NotFound();
+		else
+			return;
 	} else {
 		char buffer[buffer_size];
 		fgets(buffer, sizeof(buffer), file);
@@ -94,12 +97,12 @@ void Response::NotFound() {
 	SendStatusLine(HttpVersionStr::Http1_1, HttpStatus::NotFound);
 	SetContentType(Headers::HtmlText);
 	SendHeader(header);
-	SendFile(clnt_sock, NotFoundPage.c_str());
+	SendFile(clnt_sock, NotFoundPage.c_str(), false);
 }
 
-void Response::WriteSocket(Port_type sock, const char* buffer, size_t size,
+void Response::WriteSocket(Sock_type sock, const char* buffer, size_t size,
 		int flags) {
-	size_t length = size;
+	int length = size;
 	if (size == 0)
 		length = strlen(buffer);
 	send(sock, buffer, length, flags);

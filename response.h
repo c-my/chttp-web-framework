@@ -48,7 +48,7 @@ public:
 
 #ifdef _MSC_VER
 	using Port_type = USHORT;
-	using Sock_type = UINT_PTR;
+	using Sock_type = SOCKET;
 #endif
 
 	Response() = delete;
@@ -71,12 +71,7 @@ public:
 
 private:
 	friend class Server;
-#ifdef __linux__
-	int clnt_sock;
-#elif _MSC_VER
-	SOCKET clnt_sock;
-#endif // __linux__
-
+	Sock_type clnt_sock;
 
 	static constexpr int buffer_size { 1024 };
 	Headers header { };
@@ -85,9 +80,9 @@ private:
 
 	void SendStatusLine(const char* http_version, const char* http_status);
 	void SendHeader(const Headers& headers);
-	void SendFile(int clnt_sock, const char* file_path);
+	void SendFile(Sock_type clnt_sock, const char* file_path, bool show_not_found = true);
 
-	void WriteSocket(Port_type clnt_sock, const char* buffer, size_t size = 0,
+	void WriteSocket(Sock_type clnt_sock, const char* buffer, size_t size = 0,
 			int flags = 0);
 	inline void CloseSocket(Sock_type sock);
 };

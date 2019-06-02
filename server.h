@@ -64,7 +64,7 @@ public:
 #endif
 			Sock_type clnt_sock = accept(serv_sock, (sockaddr*)& clnt_addr,
 				&clnt_addr_len);
-			auto clnt_ip = inet_ntoa(clnt_addr.sin_addr);
+//			auto clnt_ip = inet_ntoa(clnt_addr.sin_addr);
 //			ntohl(clnt_addr.sin_addr.s_addr); // binary of 127.0.0.1
 
 			auto clnt_port = clnt_addr.sin_port;
