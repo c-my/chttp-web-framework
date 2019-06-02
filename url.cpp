@@ -7,7 +7,7 @@
 
 #include "url.h"
 using namespace std;
-std::string chttp::URL::GetParam(const std::string& key)
+std::string chttp::URL::GetParam(const std::string& key)const
 {
 	smatch result;
 	if (regex_search(_url.cbegin(), _url.cend(), result, regex{ key + "=(.*?)&" })

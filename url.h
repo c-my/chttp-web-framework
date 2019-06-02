@@ -20,7 +20,7 @@ public:
 	URL(const char* url) :_url(std::string{ url }) {}
 
 	inline std::string GetURL() const { return _url; }
-	std::string GetParam(const std::string& key);
+	std::string GetParam(const std::string& key)const;
 
 	inline bool operator == (const URL& other)const { return this->_url == other._url; }
 	inline bool operator != (const URL& other)const { return this->_url != other._url; }

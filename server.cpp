@@ -118,7 +118,11 @@ void Server::ProcessRequest(Sock_type clnt_sock) {
 	auto request_string = ReadRequest(clnt_sock);
 	auto request_line = ParseRequestLine(request_string);
 	Request_Method method = std::get<0>(request_line);
+
 	URL_type url = URL{ std::get<1>(request_line) };
+	std::string url_copy = url.GetURL();
+	auto count = url_copy.find_first_of('?');
+	std::string valid_path = url.GetURL().substr(0, count);
 	Http_Version version = std::get<2>(request_line);
 	Headers header { };
 	for (auto it = request_string.begin() + 1; it + 1 != request_string.end(); // ignore the last empty line
@@ -126,13 +130,13 @@ void Server::ProcessRequest(Sock_type clnt_sock) {
 		auto pair = GetKeyValuePair(*it);
 		header.SetHeader(pair.first, pair.second);
 	}
-	cout << "url: " << url << endl;
+	cout << "url: " << valid_path << endl;
 	cout << "Headers:\n" << header << endl;
 	// TODO add client info to request
 	Request request { method, url, version, header };
 	Response response { clnt_sock };
 	
-	RequestInfo request_info { url, method };
+	RequestInfo request_info { valid_path, method };
 	if (http_router.Contains(request_info)) {
 		auto handler = http_router.GetHandler(request_info);
 		handler(request, response);

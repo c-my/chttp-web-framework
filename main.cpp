@@ -9,6 +9,7 @@ int main() {
 	chttp::Server s { };
 	chttp::Router router { };
 	router.Get("/about", [](chttp::Request req, chttp::Response res) {
+		cout << req.URL().GetParam("key") << endl;
 		res.ServeHtml("index.html");
 	});
 	s.SetRouter(router);
