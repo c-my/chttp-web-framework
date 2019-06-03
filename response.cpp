@@ -102,13 +102,15 @@ void Response::NotFound() {
 
 void Response::WriteSocket(Sock_type sock, const char* buffer, size_t size,
 		int flags) {
-	int length = size;
+	int length = static_cast<int>(size);
 	if (size == 0)
-		length = strlen(buffer);
+		length = static_cast<int>(strlen(buffer));
 	send(sock, buffer, length, flags);
-	//std::cout << "write to socket:";
-	//for (size_t i = 0; i < length; ++i)
-	//	cout << buffer[i];
+#ifdef DEBUG
+	std::cout << "write to socket:";
+	for (size_t i = 0; i < length; ++i)
+		cout << buffer[i];
+#endif // DEBUG
 }
 
 inline void Response::CloseSocket(Sock_type sock)

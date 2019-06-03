@@ -66,7 +66,7 @@ public:
 	}
 
 	inline void SetContentType(std::string&& content_type) {
-		header.Content()["Content-Type"] = content_type;
+		header.Content()["content-type"] = content_type;
 	}
 
 private:

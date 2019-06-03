@@ -64,7 +64,7 @@ int Server::GetLine(Sock_type sock, char* buf, int size) {
 
 vector<string> Server::ReadRequest(const Sock_type& clnt_sock) {
 	int char_count { 1 };
-	char buffer[buffer_size];
+	char buffer[buffer_size] = "";
 	vector<string> content { };
 	while (char_count > 0 && strcmp("\n", buffer)) {
 		char_count = GetLine(clnt_sock, buffer, sizeof(buffer));
