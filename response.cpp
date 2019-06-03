@@ -106,9 +106,9 @@ void Response::WriteSocket(Sock_type sock, const char* buffer, size_t size,
 	if (size == 0)
 		length = strlen(buffer);
 	send(sock, buffer, length, flags);
-	std::cout << "write to socket:";
-	for (size_t i = 0; i < length; ++i)
-		cout << buffer[i];
+	//std::cout << "write to socket:";
+	//for (size_t i = 0; i < length; ++i)
+	//	cout << buffer[i];
 }
 
 inline void Response::CloseSocket(Sock_type sock)

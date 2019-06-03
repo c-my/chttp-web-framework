@@ -10,6 +10,7 @@
 
 #include <unordered_map>
 #include <string>
+#include <algorithm>
 #include <iostream>
 
 namespace chttp {
@@ -38,7 +39,7 @@ public:
 	Headers();
 	virtual ~Headers();
 
-	void SetHeader(const std::string& key, const std::string& value);
+	void SetHeader(std::string& key, const std::string& value);
 
 	inline const std::unordered_map<std::string, std::string>& Content() const {
 		return content;
@@ -48,9 +49,13 @@ public:
 		return content;
 	}
 
+	int ContentLength() const;
+
 	friend std::ostream& operator<<(std::ostream& out, const Headers &h);
 
 private:
+	inline std::string GetValue(std::string key) const;
+
 	std::unordered_map<std::string, std::string> content { };
 };
 

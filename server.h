@@ -92,6 +92,7 @@ private:
 			const std::vector<std::string>& request_data);
 	//Headers ParseRequestHeader(const std::vector<std::string>& request_data);
 
+	std::string ReadString(Sock_type sock, size_t count);
 	int GetLine(Sock_type sock, char* buf, int size);
 	std::string::const_iterator NextWord(std::string::const_iterator begin,
 			std::string::const_iterator end);

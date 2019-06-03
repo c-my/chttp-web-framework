@@ -43,8 +43,8 @@ public:
 
 	Request() = delete;
 	Request(Request_Method method, URL_type url, Http_Version version,
-			Headers header) :
-			method(method), url(url), version(version), header(header) {
+		Headers header, std::string body) :
+		method(method), url(url), version(version), header(header), request_body(body) {
 	}
 	~Request();
 
@@ -77,6 +77,7 @@ private:
 	URL_type url;
 	Http_Version version;
 	Headers header { };
+	std::string request_body{ };
 };
 
 } /* namespace chttp */

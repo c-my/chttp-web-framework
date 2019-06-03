@@ -19,8 +19,24 @@ Headers::~Headers() {
 	// TODO Auto-generated destructor stub
 }
 
-void Headers::SetHeader(const std::string& key, const std::string& value) {
+void Headers::SetHeader(std::string& key, const std::string& value) {
+	transform(key.begin(), key.end(), key.begin(), ::tolower);
 	content[key] = value;
+}
+
+int Headers::ContentLength() const
+{
+	string len = GetValue("Content-Length");
+	if (len.empty())return 0;
+	return stoi(len);
+}
+
+inline std::string Headers::GetValue(std::string key) const
+{
+	transform(key.begin(), key.end(), key.begin(), ::tolower);
+	if (content.count(key) == 0)
+		return std::string();
+	return content.at(key);
 }
 
 ostream& operator<<(ostream& out, const chttp::Headers &h) {

@@ -16,7 +16,7 @@
 
 namespace chttp {
 
-struct RequestInfo { //TODO:Hash func
+struct RequestInfo {
 	Request::URL_type url;
 	Request_Method method;
 	RequestInfo(Request::URL_type url, Request_Method method) :

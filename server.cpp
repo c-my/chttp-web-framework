@@ -23,6 +23,17 @@ Server::~Server() {
 	// TODO Auto-generated destructor stub
 }
 
+std::string Server::ReadString(Sock_type sock, size_t count)
+{
+	char c{};
+	string s{};
+	for (size_t i = 0; i < count; ++i) {
+		recv(sock, &c, 1, 0);
+		s.push_back(c);
+	}
+	return s;
+}
+
 int Server::GetLine(Sock_type sock, char* buf, int size) {
 //#ifdef __linux__
 	int count { };
@@ -117,23 +128,30 @@ Server::Sock_type Server::StartUpSocket(const Port_type& port) {
 void Server::ProcessRequest(Sock_type clnt_sock) {
 	auto request_string = ReadRequest(clnt_sock);
 	auto request_line = ParseRequestLine(request_string);
-	Request_Method method = std::get<0>(request_line);
 
+	Request_Method method = std::get<0>(request_line);
 	URL_type url = URL{ std::get<1>(request_line) };
 	std::string url_copy = url.GetURL();
 	auto count = url_copy.find_first_of('?');
 	std::string valid_path = url.GetURL().substr(0, count);
+
 	Http_Version version = std::get<2>(request_line);
+
 	Headers header { };
 	for (auto it = request_string.begin() + 1; it + 1 != request_string.end(); // ignore the last empty line
 			++it) {
 		auto pair = GetKeyValuePair(*it);
 		header.SetHeader(pair.first, pair.second);
 	}
+
+	// get request body
+	int content_length = header.ContentLength();
+	std::string request_body = ReadString(clnt_sock, static_cast<size_t>(content_length));
+
 	cout << "url: " << valid_path << endl;
 	cout << "Headers:\n" << header << endl;
 	// TODO add client info to request
-	Request request { method, url, version, header };
+	Request request{ method, url, version, header, request_body };
 	Response response { clnt_sock };
 	
 	RequestInfo request_info { valid_path, method };
@@ -141,7 +159,13 @@ void Server::ProcessRequest(Sock_type clnt_sock) {
 		auto handler = http_router.GetHandler(request_info);
 		handler(request, response);
 		cout << "find existing routers" << endl;
-	} else {
+	}
+	else if (http_router.Contains({ valid_path, Request_Method::ALL })) {
+		auto handler = http_router.GetHandler(request_info);
+		handler(request, response);
+		cout << "find existing routers" << endl;
+	}
+	else {
 		cout << "not find existing routers" << endl;
 		response.NotFound();
 	}
